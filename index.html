@@ -149,6 +149,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            z-index: 10;
         }
         
         .card-actions {
@@ -157,6 +158,7 @@
             justify-content: flex-start;
             align-items: center;
             gap: 8px;
+            position: relative;
         }
         
         .upload-label-btn {
@@ -188,10 +190,58 @@
             cursor: pointer;
             box-shadow: 0 4px 12px rgba(212,175,55,0.3);
             transition: transform 0.2s;
+            margin-right: auto;
         }
         
         .premium-publish-btn:hover {
             transform: scale(1.05);
+        }
+
+        .emoji-btn {
+            background: linear-gradient(135deg, var(--accent-gold) 0%, #b8962e 100%);
+            color: #0f172a;
+            border: none;
+            padding: 10px 14px;
+            border-radius: 30px;
+            font-weight: 800;
+            font-size: 16px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(212,175,55,0.3);
+            transition: all 0.2s;
+        }
+
+        .emoji-btn:hover {
+            transform: scale(1.05);
+        }
+        
+        .emoji-popup {
+            display: none;
+            position: fixed;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 10px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+            z-index: 2000;
+            backdrop-filter: blur(12px);
+        }
+
+        .emoji-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 6px;
+        }
+
+        .emoji-grid button {
+            font-size: 20px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            transition: all 0.2s;
+        }
+
+        .emoji-grid button:hover {
+            transform: scale(1.3);
         }
         
         .premium-feed {
@@ -276,9 +326,15 @@
             }
         }
     
-body{background:linear-gradient(135deg,#5fa8ff,#0f172a)!important}
-.premium-header{padding-bottom:10px}
-.glass-card,.premium-post{border-radius:24px}
+        body {
+            background: linear-gradient(135deg, #5fa8ff, #0f172a) !important;
+        }
+        .premium-header {
+            padding-bottom: 10px;
+        }
+        .glass-card, .premium-post {
+            border-radius: 24px;
+        }
 </style>
 </head>
 <body>
@@ -307,11 +363,11 @@ body{background:linear-gradient(135deg,#5fa8ff,#0f172a)!important}
 <span>תמונה / סרטון</span>
 <input accept="image/*,video/*" id="mediaInput" onchange="handleFileSelection()" type="file"/>
 </label>
-<button id="quickEmojiBtn" onclick="toggleQuickEmojiPopup()" style="background: linear-gradient(135deg, var(--accent-gold) 0%, #b8962e 100%); color: #0f172a; border: none; padding: 10px 14px; border-radius: 30px; font-weight: 800; font-size: 16px; cursor: pointer; box-shadow: 0 4px 12px rgba(212,175,55,0.3); transition: all 0.2s; position: relative;" title="בחר סמיילי">😊</button>
-<div id="quickEmojiPopup" onmouseleave="closeQuickEmojiPopup()" style="display: none; position: absolute; background: rgba(255, 255, 255, 0.95); border-radius: 12px; padding: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.3); z-index: 1000; margin-top: 50px; margin-right: -140px; width: 220px; backdrop-filter: blur(12px);">
-<div id="quickEmojiGrid" style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px;"></div>
+<button id="quickEmojiBtn" class="emoji-btn" type="button">😊</button>
+<div id="quickEmojiPopup" class="emoji-popup">
+<div id="quickEmojiGrid" class="emoji-grid"></div>
 </div>
-<button class="premium-publish-btn" onclick="publishPremiumPost()" style="margin-right: auto;">פרסם</button>
+<button id="publishBtn" class="premium-publish-btn" type="button">פרסם</button>
 </div>
 </div>
 <div class="premium-feed" id="premiumFeed">
@@ -327,196 +383,257 @@ body{background:linear-gradient(135deg,#5fa8ff,#0f172a)!important}
 </div>
 </div>
 </div>
+
 <script>
-        let selectedFileHolder = null;
-        let quickEmojiOpen = false;
-        const emojis = ['😊', '❤️', '🥰', '🎉', '🎈', '🥂', '🌟', '💪', '👍', '🙏', '😂', '😍', '🎊', '✨', '🔥', '💯', '😎', '🤗', '💝', '🎁', '🍾', '👏', '🌺', '💐'];
+    let selectedFileHolder = null;
+    let quickEmojiOpen = false;
+    const emojis = ['😊', '❤️', '🥰', '🎉', '🎈', '🥂', '🌟', '💪', '👍', '🙏', '😂', '😍', '🎊', '✨', '🔥', '💯', '😎', '🤗', '💝', '🎁', '🍾', '👏', '🌺', '💐'];
 
-        // Firebase Configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyA4isUCqHs8Pw3s0H5S6b1KWYQP6jBGpJQ",
-            authDomain: "pini60-79902.firebaseapp.com",
-            projectId: "pini60-79902",
-            storageBucket: "pini60-79902.firebasestorage.app",
-            messagingSenderId: "991108071521",
-            appId: "1:991108071521:web:838af6deeab71264a5aa20"
-        };
+    // Firebase Configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyA4isUCqHs8Pw3s0H5S6b1KWYQP6jBGpJQ",
+        authDomain: "pini60-79902.firebaseapp.com",
+        projectId: "pini60-79902",
+        storageBucket: "pini60-79902.firebasestorage.app",
+        messagingSenderId: "991108071521",
+        appId: "1:991108071521:web:838af6deeab71264a5aa20"
+    };
 
-        // Initialize Firebase
+    // Initialize Firebase
+    let db, storage;
+    try {
         const app = firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore(app);
-        const storage = firebase.storage(app);
+        db = firebase.firestore(app);
+        storage = firebase.storage(app);
+        console.log("Firebase initialized successfully");
+    } catch (error) {
+        console.error("Firebase initialization error:", error);
+    }
 
-        function toggleQuickEmojiPopup() {
-            quickEmojiOpen = !quickEmojiOpen;
-            const popup = document.getElementById('quickEmojiPopup');
-            
-            if (quickEmojiOpen) {
-                popup.style.display = 'block';
-            } else {
-                popup.style.display = 'none';
+    // Emoji Picker Functions
+    function toggleQuickEmojiPopup() {
+        quickEmojiOpen = !quickEmojiOpen;
+        const popup = document.getElementById('quickEmojiPopup');
+        
+        if (quickEmojiOpen) {
+            const btn = document.getElementById('quickEmojiBtn');
+            const rect = btn.getBoundingClientRect();
+            popup.style.display = 'block';
+            popup.style.top = (rect.bottom + 10) + 'px';
+            popup.style.left = (rect.right - 200) + 'px';
+        } else {
+            popup.style.display = 'none';
+        }
+    }
+
+    function closeQuickEmojiPopup() {
+        quickEmojiOpen = false;
+        document.getElementById('quickEmojiPopup').style.display = 'none';
+    }
+
+    function initEmojiPicker() {
+        const quickGrid = document.getElementById('quickEmojiGrid');
+        quickGrid.innerHTML = '';
+        
+        emojis.forEach(emoji => {
+            const btn = document.createElement('button');
+            btn.textContent = emoji;
+            btn.type = 'button';
+            btn.onclick = (e) => {
+                e.preventDefault();
+                const textarea = document.getElementById('postText');
+                textarea.value += emoji;
+                textarea.focus();
+                closeQuickEmojiPopup();
+            };
+            quickGrid.appendChild(btn);
+        });
+    }
+
+    // File Handling
+    function handleFileSelection() {
+        const fileInput = document.getElementById('mediaInput');
+        const previewZone = document.getElementById('previewZone');
+        const previewOutput = document.getElementById('previewOutput');
+
+        if (fileInput.files && fileInput.files[0]) {
+            selectedFileHolder = fileInput.files[0];
+            const fileUrl = URL.createObjectURL(selectedFileHolder);
+            previewOutput.innerHTML = '';
+
+            if (selectedFileHolder.type.startsWith('image/')) {
+                previewOutput.innerHTML = `<img src="${fileUrl}">`;
+            } else if (selectedFileHolder.type.startsWith('video/')) {
+                previewOutput.innerHTML = `<video src="${fileUrl}" controls muted autoplay loop></video>`;
             }
+            previewZone.style.display = 'block';
+        }
+    }
+
+    function removeSelectedFile() {
+        document.getElementById('mediaInput').value = '';
+        document.getElementById('previewZone').style.display = 'none';
+        document.getElementById('previewOutput').innerHTML = '';
+        selectedFileHolder = null;
+    }
+
+    // Publish Post
+    function publishPremiumPost() {
+        console.log("Publish button clicked");
+        
+        const postText = document.getElementById('postText').value.trim();
+        const userName = document.getElementById('userName').value.trim() || 'אורח/ת באירוע';
+
+        if (!postText && !selectedFileHolder) {
+            alert("אנא כתבו ברכה או הוסיפו תמונה/וידאו כדי לפרסם.");
+            return;
         }
 
-        function closeQuickEmojiPopup() {
-            quickEmojiOpen = false;
-            document.getElementById('quickEmojiPopup').style.display = 'none';
+        if (!db) {
+            alert("Firebase is not initialized. Please refresh the page.");
+            console.error("Firebase not initialized");
+            return;
         }
 
-        function initEmojiPicker() {
-            // Init quick emoji popup
-            const quickGrid = document.getElementById('quickEmojiGrid');
-            emojis.forEach(emoji => {
-                const btn = document.createElement('button');
-                btn.textContent = emoji;
-                btn.style.fontSize = '20px';
-                btn.style.background = 'transparent';
-                btn.style.border = 'none';
-                btn.style.cursor = 'pointer';
-                btn.style.padding = '4px';
-                btn.style.transition = 'all 0.2s';
-                btn.onmouseover = () => {
-                    btn.style.transform = 'scale(1.3)';
-                };
-                btn.onmouseout = () => {
-                    btn.style.transform = 'scale(1)';
-                };
-                btn.onclick = () => {
-                    const textarea = document.getElementById('postText');
-                    textarea.value += emoji;
-                    textarea.focus();
-                    closeQuickEmojiPopup();
-                };
-                quickGrid.appendChild(btn);
+        let mediaUrl = null;
+
+        // If there's a file, upload it first
+        if (selectedFileHolder) {
+            const fileName = `${Date.now()}-${selectedFileHolder.name}`;
+            const storageRef = storage.ref(`posts/${fileName}`);
+            
+            storageRef.put(selectedFileHolder).then((snapshot) => {
+                snapshot.ref.getDownloadURL().then((url) => {
+                    mediaUrl = url;
+                    savePost(userName, postText, mediaUrl);
+                });
+            }).catch((error) => {
+                console.error("Upload error:", error);
+                alert("שגיאה בהעלאת התמונה: " + error.message);
+            });
+        } else {
+            savePost(userName, postText, null);
+        }
+
+        function savePost(name, text, media) {
+            db.collection("posts").add({
+                author: name,
+                text: text,
+                mediaUrl: media,
+                timestamp: new Date(),
+                likes: 0
+            }).then(() => {
+                console.log("Post saved successfully");
+                document.getElementById('postText').value = '';
+                removeSelectedFile();
+                document.getElementById('userName').value = '';
+                loadPosts();
+            }).catch((error) => {
+                console.error("Error adding post:", error);
+                alert("שגיאה בשמירת הפוסט: " + error.message);
             });
         }
+    }
 
-        function handleFileSelection() {
-            const fileInput = document.getElementById('mediaInput');
-            const previewZone = document.getElementById('previewZone');
-            const previewOutput = document.getElementById('previewOutput');
-
-            if (fileInput.files && fileInput.files[0]) {
-                selectedFileHolder = fileInput.files[0];
-                const fileUrl = URL.createObjectURL(selectedFileHolder);
-                previewOutput.innerHTML = '';
-
-                if (selectedFileHolder.type.startsWith('image/')) {
-                    previewOutput.innerHTML = `<img src="${fileUrl}">`;
-                } else if (selectedFileHolder.type.startsWith('video/')) {
-                    previewOutput.innerHTML = `<video src="${fileUrl}" controls muted autoplay loop></video>`;
-                }
-                previewZone.style.display = 'block';
-            }
+    // Load Posts
+    function loadPosts() {
+        console.log("Loading posts...");
+        
+        if (!db) {
+            console.error("Firebase not initialized");
+            return;
         }
 
-        function removeSelectedFile() {
-            document.getElementById('mediaInput').value = '';
-            document.getElementById('previewZone').style.display = 'none';
-            document.getElementById('previewOutput').innerHTML = '';
-            selectedFileHolder = null;
-        }
+        const premiumFeed = document.getElementById('premiumFeed');
 
-        function publishPremiumPost() {
-            const postText = document.getElementById('postText').value.trim();
-            const userName = document.getElementById('userName').value.trim() || 'אורח/ת באירוע';
-
-            if (!postText && !selectedFileHolder) {
-                alert("אנא כתבו ברכה או הוסיפו תמונה/וידאו כדי לפרסם.");
+        db.collection("posts").orderBy("timestamp", "desc").onSnapshot((snapshot) => {
+            premiumFeed.innerHTML = '';
+            
+            if (snapshot.empty) {
+                premiumFeed.innerHTML = '<div class="premium-post"><div class="post-body-text">אין ברכות עדיין. היו הראשונים! 🎉</div></div>';
                 return;
             }
 
-            let mediaUrl = null;
+            snapshot.forEach((doc) => {
+                const post = doc.data();
+                const postElement = document.createElement('div');
+                postElement.className = 'premium-post';
 
-            // If there's a file, upload it first
-            if (selectedFileHolder) {
-                const storageRef = storage.ref(`posts/${Date.now()}-${selectedFileHolder.name}`);
-                storageRef.put(selectedFileHolder).then((snapshot) => {
-                    snapshot.ref.getDownloadURL().then((url) => {
-                        mediaUrl = url;
-                        savePost(userName, postText, mediaUrl);
-                    });
-                }).catch((error) => {
-                    console.error("Upload error:", error);
-                    alert("שגיאה בהעלאת התמונה");
-                });
-            } else {
-                savePost(userName, postText, null);
-            }
+                const timeOptions = { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                };
+                const postTime = new Date(post.timestamp.toDate()).toLocaleString('he-IL', timeOptions);
 
-            function savePost(name, text, media) {
-                db.collection("posts").add({
-                    author: name,
-                    text: text,
-                    mediaUrl: media,
-                    timestamp: new Date(),
-                    likes: 0
-                }).then(() => {
-                    document.getElementById('postText').value = '';
-                    removeSelectedFile();
-                    loadPosts(); // Reload posts
-                }).catch((error) => {
-                    console.error("Error adding post:", error);
-                    alert("שגיאה בשמירת הפוסט");
-                });
-            }
-        }
-
-        function loadPosts() {
-            const premiumFeed = document.getElementById('premiumFeed');
-
-            db.collection("posts").orderBy("timestamp", "desc").onSnapshot((snapshot) => {
-                premiumFeed.innerHTML = '';
-                
-                if (snapshot.empty) {
-                    premiumFeed.innerHTML = '<div class="premium-post"><div class="post-body-text">אין ברכות עדיין. היו הראשונים! 🎉</div></div>';
-                    return;
+                let mediaHtml = '';
+                if (post.mediaUrl) {
+                    if (post.mediaUrl.includes('image')) {
+                        mediaHtml = `<div class="post-media-box"><img src="${post.mediaUrl}"></div>`;
+                    } else {
+                        mediaHtml = `<div class="post-media-box"><video src="${post.mediaUrl}" controls autoplay loop muted></video></div>`;
+                    }
                 }
 
-                snapshot.forEach((doc) => {
-                    const post = doc.data();
-                    const postElement = document.createElement('div');
-                    postElement.className = 'premium-post';
-
-                    const timeOptions = { 
-                        year: 'numeric', 
-                        month: 'long', 
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                    };
-                    const postTime = new Date(post.timestamp.toDate()).toLocaleString('he-IL', timeOptions);
-
-                    let mediaHtml = '';
-                    if (post.mediaUrl) {
-                        if (post.mediaUrl.includes('image')) {
-                            mediaHtml = `<div class="post-media-box"><img src="${post.mediaUrl}"></div>`;
-                        } else {
-                            mediaHtml = `<div class="post-media-box"><video src="${post.mediaUrl}" controls autoplay loop muted></video></div>`;
-                        }
-                    }
-
-                    postElement.innerHTML = `
-                        <div class="post-top-bar">
-                            <div class="post-avatar">✨</div>
-                            <div class="post-info">
-                                <div class="author">${post.author}</div>
-                                <div class="time-tag">${postTime}</div>
-                            </div>
+                postElement.innerHTML = `
+                    <div class="post-top-bar">
+                        <div class="post-avatar">✨</div>
+                        <div class="post-info">
+                            <div class="author">${post.author}</div>
+                            <div class="time-tag">${postTime}</div>
                         </div>
-                        ${post.text ? `<div class="post-body-text">${post.text}</div>` : ''}
-                        ${mediaHtml}
-                    `;
+                    </div>
+                    ${post.text ? `<div class="post-body-text">${post.text}</div>` : ''}
+                    ${mediaHtml}
+                `;
 
-                    premiumFeed.appendChild(postElement);
-                });
+                premiumFeed.appendChild(postElement);
+            });
+        }, (error) => {
+            console.error("Error loading posts:", error);
+        });
+    }
+
+    // Event Listeners
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log("DOM loaded, initializing...");
+        
+        // Initialize emoji picker
+        initEmojiPicker();
+        
+        // Emoji button
+        const emojiBtn = document.getElementById('quickEmojiBtn');
+        if (emojiBtn) {
+            emojiBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                toggleQuickEmojiPopup();
             });
         }
-
-        window.addEventListener('DOMContentLoaded', () => {
-            initEmojiPicker();
-            loadPosts();
+        
+        // Publish button
+        const publishBtn = document.getElementById('publishBtn');
+        if (publishBtn) {
+            publishBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                publishPremiumPost();
+            });
+        }
+        
+        // Close emoji popup when clicking outside
+        document.addEventListener('click', (e) => {
+            const popup = document.getElementById('quickEmojiPopup');
+            const btn = document.getElementById('quickEmojiBtn');
+            
+            if (!popup.contains(e.target) && !btn.contains(e.target)) {
+                closeQuickEmojiPopup();
+            }
         });
-    </script>
+        
+        // Load posts
+        loadPosts();
+    });
+</script>
 </body>
 </html>

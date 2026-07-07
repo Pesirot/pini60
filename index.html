@@ -8,6 +8,12 @@
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700;800&amp;family=Secular+One&amp;display=swap" rel="stylesheet"/>
+
+<!-- Firebase Scripts -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js"></script>
+
 <style>
         :root {
             --bg-dark: #0f172a;
@@ -326,6 +332,21 @@ body{background:linear-gradient(135deg,#5fa8ff,#0f172a)!important}
         let quickEmojiOpen = false;
         const emojis = ['😊', '❤️', '🥰', '🎉', '🎈', '🥂', '🌟', '💪', '👍', '🙏', '😂', '😍', '🎊', '✨', '🔥', '💯', '😎', '🤗', '💝', '🎁', '🍾', '👏', '🌺', '💐'];
 
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyA4isUCqHs8Pw3s0H5S6b1KWYQP6jBGpJQ",
+            authDomain: "pini60-79902.firebaseapp.com",
+            projectId: "pini60-79902",
+            storageBucket: "pini60-79902.firebasestorage.app",
+            messagingSenderId: "991108071521",
+            appId: "1:991108071521:web:838af6deeab71264a5aa20"
+        };
+
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore(app);
+        const storage = firebase.storage(app);
+
         function toggleQuickEmojiPopup() {
             quickEmojiOpen = !quickEmojiOpen;
             const popup = document.getElementById('quickEmojiPopup');
@@ -399,47 +420,103 @@ body{background:linear-gradient(135deg,#5fa8ff,#0f172a)!important}
         function publishPremiumPost() {
             const postText = document.getElementById('postText').value.trim();
             const userName = document.getElementById('userName').value.trim() || 'אורח/ת באירוע';
-            const premiumFeed = document.getElementById('premiumFeed');
 
             if (!postText && !selectedFileHolder) {
                 alert("אנא כתבו ברכה או הוסיפו תמונה/וידאו כדי לפרסם.");
                 return;
             }
 
-            const postElement = document.createElement('div');
-            postElement.className = 'premium-post';
+            let mediaUrl = null;
 
-            let mediaHtml = '';
+            // If there's a file, upload it first
             if (selectedFileHolder) {
-                const fileUrl = URL.createObjectURL(selectedFileHolder);
-                if (selectedFileHolder.type.startsWith('image/')) {
-                    mediaHtml = `<div class="post-media-box"><img src="${fileUrl}"></div>`;
-                } else if (selectedFileHolder.type.startsWith('video/')) {
-                    mediaHtml = `<div class="post-media-box"><video src="${fileUrl}" controls autoplay loop muted></video></div>`;
-                }
+                const storageRef = storage.ref(`posts/${Date.now()}-${selectedFileHolder.name}`);
+                storageRef.put(selectedFileHolder).then((snapshot) => {
+                    snapshot.ref.getDownloadURL().then((url) => {
+                        mediaUrl = url;
+                        savePost(userName, postText, mediaUrl);
+                    });
+                }).catch((error) => {
+                    console.error("Upload error:", error);
+                    alert("שגיאה בהעלאת התמונה");
+                });
+            } else {
+                savePost(userName, postText, null);
             }
 
-            const now = new Date();
-            const timeStr = now.toLocaleString('he-IL');
-
-            postElement.innerHTML = `
-                <div class="post-top-bar">
-                    <div class="post-avatar">✨</div>
-                    <div class="post-info">
-                        <div class="author">${userName}</div>
-                        <div class="time-tag">עכשיו</div>
-                    </div>
-                </div>
-                ${postText ? `<div class="post-body-text">${postText}</div>` : ''}
-                ${mediaHtml}
-            `;
-
-            premiumFeed.insertBefore(postElement, premiumFeed.firstChild);
-            document.getElementById('postText').value = '';
-            removeSelectedFile();
+            function savePost(name, text, media) {
+                db.collection("posts").add({
+                    author: name,
+                    text: text,
+                    mediaUrl: media,
+                    timestamp: new Date(),
+                    likes: 0
+                }).then(() => {
+                    document.getElementById('postText').value = '';
+                    removeSelectedFile();
+                    loadPosts(); // Reload posts
+                }).catch((error) => {
+                    console.error("Error adding post:", error);
+                    alert("שגיאה בשמירת הפוסט");
+                });
+            }
         }
 
-        window.addEventListener('DOMContentLoaded', initEmojiPicker);
+        function loadPosts() {
+            const premiumFeed = document.getElementById('premiumFeed');
+
+            db.collection("posts").orderBy("timestamp", "desc").onSnapshot((snapshot) => {
+                premiumFeed.innerHTML = '';
+                
+                if (snapshot.empty) {
+                    premiumFeed.innerHTML = '<div class="premium-post"><div class="post-body-text">אין ברכות עדיין. היו הראשונים! 🎉</div></div>';
+                    return;
+                }
+
+                snapshot.forEach((doc) => {
+                    const post = doc.data();
+                    const postElement = document.createElement('div');
+                    postElement.className = 'premium-post';
+
+                    const timeOptions = { 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    };
+                    const postTime = new Date(post.timestamp.toDate()).toLocaleString('he-IL', timeOptions);
+
+                    let mediaHtml = '';
+                    if (post.mediaUrl) {
+                        if (post.mediaUrl.includes('image')) {
+                            mediaHtml = `<div class="post-media-box"><img src="${post.mediaUrl}"></div>`;
+                        } else {
+                            mediaHtml = `<div class="post-media-box"><video src="${post.mediaUrl}" controls autoplay loop muted></video></div>`;
+                        }
+                    }
+
+                    postElement.innerHTML = `
+                        <div class="post-top-bar">
+                            <div class="post-avatar">✨</div>
+                            <div class="post-info">
+                                <div class="author">${post.author}</div>
+                                <div class="time-tag">${postTime}</div>
+                            </div>
+                        </div>
+                        ${post.text ? `<div class="post-body-text">${post.text}</div>` : ''}
+                        ${mediaHtml}
+                    `;
+
+                    premiumFeed.appendChild(postElement);
+                });
+            });
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initEmojiPicker();
+            loadPosts();
+        });
     </script>
 </body>
 </html>

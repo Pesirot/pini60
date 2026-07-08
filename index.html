@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html dir="rtl" lang="he">
 <head>
 <meta charset="utf-8"/>
@@ -9,10 +8,10 @@
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700;800&amp;family=Secular+One&amp;display=swap" rel="stylesheet"/>
 
-<!-- Firebase Scripts -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js"></script>
+<!-- Firebase Scripts - Updated to -compat for compatibility -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 
 <style>
         :root {
@@ -23,373 +22,55 @@
             --text-muted: #64748b;
         }
         
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Assistant', sans-serif;
-        }
-        
-        body {
-            background: radial-gradient(circle at top, #1e293b 0%, #0f172a 100%);
-            color: #f8fafc;
-            min-height: 100vh;
-            padding-bottom: 60px;
-            background-attachment: fixed;
-        }
-        
-        .premium-header {
-            text-align: center;
-            padding: 50px 20px 30px 20px;
-        }
-        
-        .premium-header h1 {
-            font-family: 'Secular One', sans-serif;
-            font-size: 3.5rem;
-            color: var(--accent-gold);
-            text-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            margin-bottom: 10px;
-        }
-        
-        .premium-header p {
-            font-size: 1.3rem;
-            color: #94a3b8;
-            font-weight: 300;
-        }
-        
-        .main-container {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-        
-        .glass-card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 16px;
-            padding: 20px;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-            margin-bottom: 30px;
-        }
-        
-        .card-title-area {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 15px;
-        }
-        
-        .icon-avatar {
-            width: 42px;
-            height: 42px;
-            background: linear-gradient(135deg, var(--accent-gold), #b8962e);
-            color: #0f172a;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-        }
-        
-        .card-title-area span {
-            font-weight: 600;
-            color: #f1f5f9;
-            font-size: 1.1rem;
-        }
-        
-        .glass-card textarea {
-            width: 100%;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            padding: 14px;
-            font-size: 17px;
-            color: white;
-            outline: none;
-            resize: none;
-            min-height: 80px;
-        }
-        
-        .glass-card textarea::placeholder {
-            color: #94a3b8;
-        }
-        
-        .media-preview-zone {
-            margin: 15px 0 5px 0;
-            display: none;
-            position: relative;
-            border-radius: 10px;
-            overflow: hidden;
-            border: 1px solid rgba(212,175,55,0.3);
-            background: #000;
-        }
-        
-        .media-preview-zone img,
-        .media-preview-zone video {
-            width: 100%;
-            max-height: 250px;
-            object-fit: contain;
-            display: block;
-        }
-        
-        .cancel-file-btn {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background: rgba(0, 0, 0, 0.75);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            cursor: pointer;
-            font-size: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 10;
-        }
-        
-        .card-actions {
-            margin-top: 15px;
-            display: flex;
-            justify-content: flex-start;
-            align-items: center;
-            gap: 8px;
-            position: relative;
-        }
-        
-        .upload-label-btn {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 16px;
-            background: rgba(255,255,255,0.06);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 30px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 15px;
-            color: #e2e8f0;
-        }
-        
-        .upload-label-btn input[type="file"] {
-            display: none;
-        }
-        
-        .premium-publish-btn {
-            background: linear-gradient(135deg, var(--accent-gold) 0%, #b8962e 100%);
-            color: #0f172a;
-            border: none;
-            padding: 10px 28px;
-            border-radius: 30px;
-            font-weight: 800;
-            font-size: 16px;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(212,175,55,0.3);
-            transition: transform 0.2s;
-            margin-right: auto;
-        }
-        
-        .premium-publish-btn:hover {
-            transform: scale(1.05);
-        }
-
-        .emoji-btn {
-            background: linear-gradient(135deg, var(--accent-gold) 0%, #b8962e 100%);
-            color: #0f172a;
-            border: none;
-            padding: 10px 14px;
-            border-radius: 30px;
-            font-weight: 800;
-            font-size: 16px;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(212,175,55,0.3);
-            transition: all 0.2s;
-        }
-
-        .emoji-btn:hover {
-            transform: scale(1.05);
-        }
-        
-        .emoji-popup {
-            display: none;
-            position: fixed;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 12px;
-            padding: 10px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
-            z-index: 2000;
-            backdrop-filter: blur(12px);
-        }
-
-        .emoji-grid {
-            display: grid;
-            grid-template-columns: repeat(6, 1fr);
-            gap: 6px;
-        }
-
-        .emoji-grid button {
-            font-size: 20px;
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            padding: 4px;
-            transition: all 0.2s;
-        }
-
-        .emoji-grid button:hover {
-            transform: scale(1.3);
-        }
-        
-        .premium-feed {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-        
-        .premium-post {
-            background: var(--bg-card);
-            color: var(--text-main);
-            border-radius: 16px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            overflow: hidden;
-            border-right: 5px solid var(--accent-gold);
-            animation: fancySlideIn 0.5s ease;
-        }
-        
-        .post-top-bar {
-            padding: 16px 20px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        
-        .post-avatar {
-            width: 44px;
-            height: 44px;
-            background: linear-gradient(135deg, #1e293b, #0f172a);
-            color: var(--accent-gold);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 18px;
-            border: 2px solid var(--accent-gold);
-        }
-        
-        .post-info .author {
-            font-weight: 700;
-            font-size: 16px;
-        }
-        
-        .post-info .time-tag {
-            font-size: 12px;
-            color: var(--text-muted);
-            margin-top: 2px;
-        }
-        
-        .post-body-text {
-            padding: 0 20px 16px 20px;
-            font-size: 17px;
-            line-height: 1.6;
-            color: #334155;
-            white-space: pre-line;
-        }
-        
-        .post-media-box {
-            background: #000;
-            width: 100%;
-            display: flex;
-            justify-content: center;
-        }
-        
-        .post-media-box img,
-        .post-media-box video {
-            width: 100%;
-            max-height: 450px;
-            object-fit: contain;
-            display: block;
-        }
-        
-        @keyframes fancySlideIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-    
-        body {
-            background: linear-gradient(135deg, #5fa8ff, #0f172a) !important;
-        }
-        .premium-header {
-            padding-bottom: 10px;
-        }
-        .glass-card, .premium-post {
-            border-radius: 24px;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Assistant', sans-serif; }
+        body { background: linear-gradient(135deg, #5fa8ff, #0f172a); color: #f8fafc; min-height: 100vh; padding-bottom: 60px; background-attachment: fixed; }
+        .premium-header { text-align: center; padding: 50px 20px 30px 20px; }
+        .premium-header h1 { font-family: 'Secular One', sans-serif; font-size: 3.5rem; color: var(--accent-gold); text-shadow: 0 4px 15px rgba(0,0,0,0.5); margin-bottom: 10px; }
+        .main-container { max-width: 600px; margin: 0 auto; padding: 0 20px; }
+        .glass-card { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 24px; padding: 20px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3); margin-bottom: 30px; }
+        .card-title-area { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; }
+        .icon-avatar { width: 42px; height: 42px; background: linear-gradient(135deg, var(--accent-gold), #b8962e); color: #0f172a; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        .glass-card textarea { width: 100%; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px; padding: 14px; font-size: 17px; color: white; outline: none; resize: none; min-height: 80px; }
+        .media-preview-zone { margin: 15px 0 5px 0; display: none; position: relative; border-radius: 10px; overflow: hidden; border: 1px solid rgba(212,175,55,0.3); background: #000; }
+        .media-preview-zone img, .media-preview-zone video { width: 100%; max-height: 250px; object-fit: contain; display: block; }
+        .cancel-file-btn { position: absolute; top: 10px; left: 10px; background: rgba(0, 0, 0, 0.75); color: white; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; }
+        .card-actions { margin-top: 15px; display: flex; align-items: center; gap: 8px; }
+        .upload-label-btn { padding: 10px 16px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 30px; cursor: pointer; color: #e2e8f0; }
+        .premium-publish-btn { background: linear-gradient(135deg, var(--accent-gold) 0%, #b8962e 100%); color: #0f172a; border: none; padding: 10px 28px; border-radius: 30px; font-weight: 800; cursor: pointer; margin-right: auto; }
+        .premium-post { background: var(--bg-card); color: var(--text-main); border-radius: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); border-right: 5px solid var(--accent-gold); margin-bottom: 20px; padding: 16px; }
+        .post-top-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+        .post-avatar { width: 44px; height: 44px; background: #1e293b; color: var(--accent-gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid var(--accent-gold); }
+        .post-body-text { font-size: 17px; line-height: 1.6; color: #334155; white-space: pre-line; }
+        .emoji-popup { display: none; position: fixed; background: rgba(255, 255, 255, 0.95); border-radius: 12px; padding: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.3); z-index: 2000; }
+        .emoji-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+        .emoji-grid button { font-size: 20px; background: transparent; border: none; cursor: pointer; padding: 4px; }
 </style>
 </head>
 <body>
 <div class="premium-header">
 <h1>יום הולדת לפיני 60 🎉</h1>
 <p>מעלים ברכות, תמונות וחיוכים מכל הלב!</p>
-</div><div style="text-align:center;margin:20px auto;">
-<img src="use this.jpeg" style="width:180px;height:180px;border-radius:50%;object-fit:cover;border:6px solid #d4af37;box-shadow:0 10px 30px rgba(0,0,0,.35)"/>
-<div style="color:white;font-size:22px;margin-top:12px">❤️ פיני שלנו ❤️</div>
 </div>
 <div class="main-container">
 <div class="glass-card">
-<div class="card-title-area">
-<div class="icon-avatar">🥂</div>
-<span>כתבו פוסט וברכו את אבא...</span>
-</div>
-<input id="userName" maxlength="50" placeholder="הזן את שמך" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px; color: white; font-size: 16px; margin-bottom: 12px; outline: none;" type="text"/>
+<div class="card-title-area"><div class="icon-avatar">🥂</div><span>כתבו פוסט וברכו את אבא...</span></div>
+<input id="userName" maxlength="50" placeholder="הזן את שמך" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px; color: white; margin-bottom: 12px; outline: none;" type="text"/>
 <textarea id="postText" placeholder="על מה אתם חושבים? רשמו כאן ברכה חמה..."></textarea>
-<div class="media-preview-zone" id="previewZone">
-<button class="cancel-file-btn" onclick="removeSelectedFile()">×</button>
-<div id="previewOutput"></div>
-</div>
+<div class="media-preview-zone" id="previewZone"><button class="cancel-file-btn" onclick="removeSelectedFile()">×</button><div id="previewOutput"></div></div>
 <div class="card-actions">
-<label class="upload-label-btn">
-<span class="icon">📸</span>
-<span>תמונה / סרטון</span>
-<input accept="image/*,video/*" id="mediaInput" onchange="handleFileSelection()" type="file"/>
-</label>
-<button id="quickEmojiBtn" class="emoji-btn" type="button">😊</button>
-<div id="quickEmojiPopup" class="emoji-popup">
-<div id="quickEmojiGrid" class="emoji-grid"></div>
-</div>
+<label class="upload-label-btn">📸 תמונה / סרטון <input accept="image/*,video/*" id="mediaInput" onchange="handleFileSelection()" type="file"/></label>
+<button id="quickEmojiBtn" class="upload-label-btn" type="button">😊</button>
+<div id="quickEmojiPopup" class="emoji-popup"><div id="quickEmojiGrid" class="emoji-grid"></div></div>
 <button id="publishBtn" class="premium-publish-btn" type="button">פרסם</button>
 </div>
 </div>
-<div class="premium-feed" id="premiumFeed">
-<div class="premium-post">
-<div class="post-top-bar">
-<div class="post-avatar">❤️</div>
-<div class="post-info">
-<div class="author">אורח/ת באירוע</div>
-<div class="time-tag">לפני 3 דקות</div>
-</div>
-</div>
-<div class="post-body-text">פיני היקר, מזל טוב ענק לגיל 60! 🥂 מאחלים לך את כל האושר שבעולם, בריאות, נחת, ושתמשיך לחגוג ולטרוף את החיים כמו שאתה יודע! אוהבים המון! 🎉🎈</div>
-</div>
-</div>
+<div class="premium-feed" id="premiumFeed"></div>
 </div>
 
 <script>
     let selectedFileHolder = null;
-    let quickEmojiOpen = false;
-    const emojis = ['😊', '❤️', '🥰', '🎉', '🎈', '🥂', '🌟', '💪', '👍', '🙏', '😂', '😍', '🎊', '✨', '🔥', '💯', '😎', '🤗', '💝', '🎁', '🍾', '👏', '🌺', '💐'];
+    const emojis = ['😊', '❤️', '🥰', '🎉', '🎈', '🥂', '🌟', '💪', '👍', '🙏', '😂', '😍'];
 
-    // Firebase Configuration
     const firebaseConfig = {
         apiKey: "AIzaSyA4isUCqHs8Pw3s0H5S6b1KWYQP6jBGpJQ",
         authDomain: "pini60-79902.firebaseapp.com",
@@ -399,73 +80,18 @@
         appId: "1:991108071521:web:838af6deeab71264a5aa20"
     };
 
-    // Initialize Firebase
-    let db, storage;
-    try {
-        const app = firebase.initializeApp(firebaseConfig);
-        db = firebase.firestore(app);
-        storage = firebase.storage(app);
-        console.log("Firebase initialized successfully");
-    } catch (error) {
-        console.error("Firebase initialization error:", error);
-    }
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const storage = firebase.storage();
 
-    // Emoji Picker Functions
-    function toggleQuickEmojiPopup() {
-        quickEmojiOpen = !quickEmojiOpen;
-        const popup = document.getElementById('quickEmojiPopup');
-        
-        if (quickEmojiOpen) {
-            const btn = document.getElementById('quickEmojiBtn');
-            const rect = btn.getBoundingClientRect();
-            popup.style.display = 'block';
-            popup.style.top = (rect.bottom + 10) + 'px';
-            popup.style.left = (rect.right - 200) + 'px';
-        } else {
-            popup.style.display = 'none';
-        }
-    }
-
-    function closeQuickEmojiPopup() {
-        quickEmojiOpen = false;
-        document.getElementById('quickEmojiPopup').style.display = 'none';
-    }
-
-    function initEmojiPicker() {
-        const quickGrid = document.getElementById('quickEmojiGrid');
-        quickGrid.innerHTML = '';
-        
-        emojis.forEach(emoji => {
-            const btn = document.createElement('button');
-            btn.textContent = emoji;
-            btn.type = 'button';
-            btn.onclick = (e) => {
-                e.preventDefault();
-                const textarea = document.getElementById('postText');
-                textarea.value += emoji;
-                textarea.focus();
-                closeQuickEmojiPopup();
-            };
-            quickGrid.appendChild(btn);
-        });
-    }
-
-    // File Handling
     function handleFileSelection() {
         const fileInput = document.getElementById('mediaInput');
         const previewZone = document.getElementById('previewZone');
         const previewOutput = document.getElementById('previewOutput');
-
         if (fileInput.files && fileInput.files[0]) {
             selectedFileHolder = fileInput.files[0];
             const fileUrl = URL.createObjectURL(selectedFileHolder);
-            previewOutput.innerHTML = '';
-
-            if (selectedFileHolder.type.startsWith('image/')) {
-                previewOutput.innerHTML = `<img src="${fileUrl}">`;
-            } else if (selectedFileHolder.type.startsWith('video/')) {
-                previewOutput.innerHTML = `<video src="${fileUrl}" controls muted autoplay loop></video>`;
-            }
+            previewOutput.innerHTML = selectedFileHolder.type.startsWith('image/') ? `<img src="${fileUrl}">` : `<video src="${fileUrl}" controls></video>`;
             previewZone.style.display = 'block';
         }
     }
@@ -473,167 +99,64 @@
     function removeSelectedFile() {
         document.getElementById('mediaInput').value = '';
         document.getElementById('previewZone').style.display = 'none';
-        document.getElementById('previewOutput').innerHTML = '';
         selectedFileHolder = null;
     }
 
-    // Publish Post
     function publishPremiumPost() {
-        console.log("Publish button clicked");
-        
         const postText = document.getElementById('postText').value.trim();
-        const userName = document.getElementById('userName').value.trim() || 'אורח/ת באירוע';
+        const userName = document.getElementById('userName').value.trim() || 'אורח';
+        if (!postText && !selectedFileHolder) return alert("אנא כתבו ברכה או צרפו קובץ.");
 
-        if (!postText && !selectedFileHolder) {
-            alert("אנא כתבו ברכה או הוסיפו תמונה/וידאו כדי לפרסם.");
-            return;
-        }
-
-        if (!db) {
-            alert("Firebase is not initialized. Please refresh the page.");
-            console.error("Firebase not initialized");
-            return;
-        }
-
-        let mediaUrl = null;
-
-        // If there's a file, upload it first
         if (selectedFileHolder) {
-            const fileName = `${Date.now()}-${selectedFileHolder.name}`;
-            const storageRef = storage.ref(`posts/${fileName}`);
-            
-            storageRef.put(selectedFileHolder).then((snapshot) => {
-                snapshot.ref.getDownloadURL().then((url) => {
-                    mediaUrl = url;
-                    savePost(userName, postText, mediaUrl);
-                });
-            }).catch((error) => {
-                console.error("Upload error:", error);
-                alert("שגיאה בהעלאת התמונה: " + error.message);
-            });
+            const storageRef = storage.ref(`posts/${Date.now()}-${selectedFileHolder.name}`);
+            storageRef.put(selectedFileHolder).then(snapshot => snapshot.ref.getDownloadURL()).then(url => savePost(userName, postText, url));
         } else {
             savePost(userName, postText, null);
         }
-
-        function savePost(name, text, media) {
-            db.collection("posts").add({
-                author: name,
-                text: text,
-                mediaUrl: media,
-                timestamp: new Date(),
-                likes: 0
-            }).then(() => {
-                console.log("Post saved successfully");
-                document.getElementById('postText').value = '';
-                removeSelectedFile();
-                document.getElementById('userName').value = '';
-                loadPosts();
-            }).catch((error) => {
-                console.error("Error adding post:", error);
-                alert("שגיאה בשמירת הפוסט: " + error.message);
-            });
-        }
     }
 
-    // Load Posts
+    function savePost(name, text, media) {
+        db.collection("posts").add({ author: name, text: text, mediaUrl: media, timestamp: firebase.firestore.FieldValue.serverTimestamp() })
+          .then(() => {
+              document.getElementById('postText').value = '';
+              removeSelectedFile();
+              alert("פורסם בהצלחה!");
+          });
+    }
+
     function loadPosts() {
-        console.log("Loading posts...");
-        
-        if (!db) {
-            console.error("Firebase not initialized");
-            return;
-        }
-
         const premiumFeed = document.getElementById('premiumFeed');
-
-        db.collection("posts").orderBy("timestamp", "desc").onSnapshot((snapshot) => {
+        db.collection("posts").orderBy("timestamp", "desc").onSnapshot(snapshot => {
             premiumFeed.innerHTML = '';
-            
-            if (snapshot.empty) {
-                premiumFeed.innerHTML = '<div class="premium-post"><div class="post-body-text">אין ברכות עדיין. היו הראשונים! 🎉</div></div>';
-                return;
-            }
-
-            snapshot.forEach((doc) => {
+            snapshot.forEach(doc => {
                 const post = doc.data();
-                const postElement = document.createElement('div');
-                postElement.className = 'premium-post';
-
-                const timeOptions = { 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                };
-                const postTime = new Date(post.timestamp.toDate()).toLocaleString('he-IL', timeOptions);
-
-                let mediaHtml = '';
-                if (post.mediaUrl) {
-                    if (post.mediaUrl.includes('image')) {
-                        mediaHtml = `<div class="post-media-box"><img src="${post.mediaUrl}"></div>`;
-                    } else {
-                        mediaHtml = `<div class="post-media-box"><video src="${post.mediaUrl}" controls autoplay loop muted></video></div>`;
-                    }
-                }
-
-                postElement.innerHTML = `
-                    <div class="post-top-bar">
-                        <div class="post-avatar">✨</div>
-                        <div class="post-info">
-                            <div class="author">${post.author}</div>
-                            <div class="time-tag">${postTime}</div>
-                        </div>
-                    </div>
-                    ${post.text ? `<div class="post-body-text">${post.text}</div>` : ''}
-                    ${mediaHtml}
+                const postDiv = document.createElement('div');
+                postDiv.className = 'premium-post';
+                postDiv.innerHTML = `
+                    <div class="post-top-bar"><div class="post-avatar">✨</div><div><strong>${post.author}</strong></div></div>
+                    <div class="post-body-text">${post.text}</div>
+                    ${post.mediaUrl ? `<div style="margin-top:10px;"><img src="${post.mediaUrl}" style="width:100%;border-radius:10px;"></div>` : ''}
                 `;
-
-                premiumFeed.appendChild(postElement);
+                premiumFeed.appendChild(postDiv);
             });
-        }, (error) => {
-            console.error("Error loading posts:", error);
         });
     }
 
-    // Event Listeners
-    document.addEventListener('DOMContentLoaded', () => {
-        console.log("DOM loaded, initializing...");
-        
-        // Initialize emoji picker
-        initEmojiPicker();
-        
-        // Emoji button
-        const emojiBtn = document.getElementById('quickEmojiBtn');
-        if (emojiBtn) {
-            emojiBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                toggleQuickEmojiPopup();
-            });
-        }
-        
-        // Publish button
-        const publishBtn = document.getElementById('publishBtn');
-        if (publishBtn) {
-            publishBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                publishPremiumPost();
-            });
-        }
-        
-        // Close emoji popup when clicking outside
-        document.addEventListener('click', (e) => {
-            const popup = document.getElementById('quickEmojiPopup');
-            const btn = document.getElementById('quickEmojiBtn');
-            
-            if (!popup.contains(e.target) && !btn.contains(e.target)) {
-                closeQuickEmojiPopup();
-            }
-        });
-        
-        // Load posts
-        loadPosts();
+    document.getElementById('publishBtn').addEventListener('click', publishPremiumPost);
+    document.getElementById('quickEmojiBtn').addEventListener('click', () => {
+        const popup = document.getElementById('quickEmojiPopup');
+        popup.style.display = popup.style.display === 'block' ? 'none' : 'block';
     });
+
+    const grid = document.getElementById('quickEmojiGrid');
+    emojis.forEach(em => {
+        const btn = document.createElement('button');
+        btn.textContent = em;
+        btn.onclick = () => { document.getElementById('postText').value += em; };
+        grid.appendChild(btn);
+    });
+
+    loadPosts();
 </script>
 </body>
 </html>

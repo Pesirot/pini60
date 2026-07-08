@@ -2,22 +2,20 @@
 <html dir="rtl" lang="he">
 <head>
 <meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
 <title>יום הולדת 60 לפיני! 🎉</title>
-<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;700&display=swap" rel="stylesheet"/>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
 <style>
     :root { --accent-gold: #d4af37; }
-    body { background: linear-gradient(135deg, #5fa8ff, #0f172a); color: white; font-family: 'Assistant', sans-serif; margin: 0; padding: 20px; }
+    body { background: linear-gradient(135deg, #5fa8ff, #0f172a); color: white; font-family: sans-serif; margin: 0; padding: 20px; }
     .main-container { max-width: 500px; margin: 0 auto; text-align: center; }
     .father-img { width: 160px; height: 160px; border-radius: 50%; border: 5px solid var(--accent-gold); object-fit: cover; }
     .card { background: rgba(255,255,255,0.15); padding: 20px; border-radius: 20px; backdrop-filter: blur(10px); margin-top: 20px; }
     input, textarea { width: 100%; padding: 12px; border-radius: 12px; border: none; margin-bottom: 10px; box-sizing: border-box; }
-    #emojiPopup { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: white; color: black; padding: 20px; border-radius: 20px 20px 0 0; z-index: 100; max-height: 50vh; overflow-y: auto; }
+    .btn { background: var(--accent-gold); padding: 10px 20px; border-radius: 20px; border: none; cursor: pointer; font-weight: bold; }
+    #emojiPopup { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: white; color: black; padding: 20px; border-radius: 20px 20px 0 0; z-index: 1000; height: 300px; overflow-y: auto; }
     .grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
-    .btn { background: var(--accent-gold); color: black; padding: 10px 20px; border-radius: 20px; border: none; cursor: pointer; font-weight: bold; }
     .post { background: white; color: #1e293b; padding: 15px; border-radius: 15px; margin-top: 15px; text-align: right; }
 </style>
 </head>
@@ -31,7 +29,7 @@
         <input id="userName" placeholder="השם שלך...">
         <textarea id="postText" placeholder="כתבו ברכה..."></textarea>
         <div style="display:flex; gap:10px;">
-            <button class="btn" onclick="document.getElementById('emojiPopup').style.display='block'">😊 אייקונים</button>
+            <button class="btn" onclick="document.getElementById('emojiPopup').style.display='block'">😊 בחירת אייקון</button>
             <button id="publishBtn" class="btn" onclick="savePost()" style="flex-grow:1;">פרסם</button>
         </div>
     </div>
@@ -40,12 +38,11 @@
 
 <div id="emojiPopup">
     <div class="grid" id="emojiGrid"></div>
-    <button onclick="document.getElementById('emojiPopup').style.display='none'" style="width:100%; margin-top:10px; padding:10px;">סגור</button>
+    <button onclick="document.getElementById('emojiPopup').style.display='none'" style="width:100%; margin-top:15px; padding:10px;">סגור</button>
 </div>
 
 <script>
-    const firebaseConfig = { apiKey: "AIzaSyA4isUCqHs8Pw3s0H5S6b1KWYQP6jBGpJQ", projectId: "pini60-79902", firestore: true };
-    firebase.initializeApp(firebaseConfig);
+    firebase.initializeApp({apiKey: "AIzaSyA4isUCqHs8Pw3s0H5S6b1KWYQP6jBGpJQ", projectId: "pini60-79902", firestore: true});
     const db = firebase.firestore();
 
     const emojis = ['😊', '😂', '😍', '🥳', '🎂', '🎉', '🎈', '🎁', '🥂', '❤️', '🌟', '👑', '💪', '🙏', '🙌', '⚽', '🎸', '🎹', '📸', '⚡', '🔥', '🥰', '😎', '🤩'];
@@ -53,7 +50,7 @@
     emojis.forEach(e => {
         const b = document.createElement('button');
         b.innerText = e; b.style.fontSize = "24px"; b.style.border="none"; b.style.background="none";
-        b.onclick = () => { document.getElementById('postText').value += e; };
+        b.onclick = () => { document.getElementById('postText').value += e; document.getElementById('emojiPopup').style.display='none'; };
         grid.appendChild(b);
     });
 
@@ -62,7 +59,6 @@
         if(!text) return alert("נא לכתוב ברכה");
         await db.collection("posts").add({ author: document.getElementById('userName').value || 'אורח', text, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
         document.getElementById('postText').value = '';
-        alert("נשלח!");
     }
 
     db.collection("posts").orderBy("timestamp", "desc").onSnapshot(s => {

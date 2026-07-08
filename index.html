@@ -4,42 +4,45 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>יום הולדת 60 לפיני! 🎉</title>
-<!-- Firebase SDK -->
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;700&family=Secular+One&display=swap" rel="stylesheet"/>
+
+<!-- Firebase Scripts -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 
 <style>
     :root { --accent-gold: #d4af37; }
-    body { background: linear-gradient(135deg, #5fa8ff, #0f172a); color: #fff; font-family: sans-serif; margin: 0; padding: 20px; }
-    .main-container { max-width: 500px; margin: 0 auto; text-align: center; }
-    .father-img { width: 180px; height: 180px; border-radius: 50%; border: 5px solid var(--accent-gold); object-fit: cover; margin-bottom: 20px; }
-    .card { background: rgba(255,255,255,0.1); padding: 20px; border-radius: 20px; backdrop-filter: blur(5px); }
-    input, textarea { width: 100%; padding: 10px; margin: 5px 0; border-radius: 8px; border: none; }
-    .btn-row { display: flex; gap: 10px; margin-top: 10px; justify-content: center; }
-    button { padding: 10px 20px; border-radius: 10px; border: none; cursor: pointer; background: var(--accent-gold); font-weight: bold; }
-    .post { background: #fff; color: #000; padding: 15px; border-radius: 10px; margin-top: 15px; text-align: right; }
-    #previewZone { margin: 10px 0; position: relative; display: inline-block; }
+    body { background: linear-gradient(135deg, #5fa8ff, #0f172a); color: #f8fafc; font-family: 'Assistant', sans-serif; margin: 0; padding-bottom: 50px; }
+    .premium-header { text-align: center; padding: 40px 20px; }
+    .father-img { width: 180px; height: 180px; border-radius: 50%; border: 6px solid var(--accent-gold); object-fit: cover; }
+    .main-container { max-width: 600px; margin: 0 auto; padding: 0 20px; }
+    .glass-card { background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(10px); border-radius: 20px; padding: 20px; }
+    input, textarea { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: none; }
+    .custom-upload-btn { background: #334155; padding: 10px 15px; border-radius: 20px; cursor: pointer; display: inline-block; }
+    .premium-publish-btn { background: var(--accent-gold); border: none; padding: 10px 30px; border-radius: 20px; font-weight: bold; cursor: pointer; }
+    #previewZone { margin-top: 15px; position: relative; display: inline-block; }
+    .remove-btn { position: absolute; top: -5px; right: -5px; background: red; color: white; border-radius: 50%; width: 25px; cursor: pointer; border: none; }
+    .premium-post { background: white; color: #1e293b; padding: 20px; border-radius: 15px; margin-top: 20px; border-right: 5px solid var(--accent-gold); }
 </style>
 </head>
 <body>
 
-<div class="main-container">
+<div class="premium-header">
     <h1>יום הולדת 60 לפיני 🎉</h1>
     <img src="Father.jpeg" class="father-img" alt="פיני">
-    
-    <div class="card">
-        <input id="userName" placeholder="השם שלך...">
-        <textarea id="postText" placeholder="מה תרצו לכתוב?"></textarea>
-        
-        <div class="btn-row">
-            <label style="background:#555; padding:10px; border-radius:10px; cursor:pointer;">📸 תמונה
-                <input type="file" id="mediaInput" accept="image/*" style="display:none;" onchange="showPreview()">
-            </label>
-            <button onclick="document.getElementById('postText').value += '😊'">😊</button>
-            <button id="publishBtn" onclick="sendPost()">פרסם ברכה</button>
+</div>
+
+<div class="main-container">
+    <div class="glass-card">
+        <input id="userName" placeholder="השם שלך..." type="text"/>
+        <textarea id="postText" placeholder="כתבו ברכה..."></textarea>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <label class="custom-upload-btn">📸 תמונה <input accept="image/*" id="mediaInput" onchange="handleFileSelection()" type="file" style="display:none;"/></label>
+            <button onclick="addEmoji('😊')" style="background:none; border:none; cursor:pointer; font-size:20px;">😊</button>
+            <button id="publishBtn" class="premium-publish-btn">פרסם</button>
         </div>
-        <div id="previewZone"></div>
+        <div id="previewZone" style="display:none;"></div>
     </div>
     <div id="premiumFeed"></div>
 </div>
@@ -57,24 +60,31 @@
     const db = firebase.firestore();
     const storage = firebase.storage();
 
-    function showPreview() {
-        const file = document.getElementById('mediaInput').files[0];
-        if(!file) return;
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            document.getElementById('previewZone').innerHTML = `<img src="${e.target.result}" style="width:100px; border-radius:10px;"> <button onclick="this.parentElement.innerHTML=''">X</button>`;
-        };
-        reader.readAsDataURL(file);
+    function addEmoji(e) { document.getElementById('postText').value += e; }
+
+    function handleFileSelection() {
+        const input = document.getElementById('mediaInput');
+        const zone = document.getElementById('previewZone');
+        if (input.files[0]) {
+            zone.innerHTML = `<img src="${URL.createObjectURL(input.files[0])}" style="max-height:100px; border-radius:10px;">
+                              <button class="remove-btn" onclick="clearFile()">X</button>`;
+            zone.style.display = 'block';
+        }
     }
 
-    async function sendPost() {
+    function clearFile() {
+        document.getElementById('mediaInput').value = '';
+        document.getElementById('previewZone').style.display = 'none';
+    }
+
+    document.getElementById('publishBtn').onclick = async () => {
         const btn = document.getElementById('publishBtn');
         const file = document.getElementById('mediaInput').files[0];
         btn.innerText = "מעלה...";
         
         let url = null;
-        if(file) {
-            const snapshot = await storage.ref('posts/' + Date.now()).put(file);
+        if (file) {
+            const snapshot = await storage.ref(`posts/${Date.now()}`).put(file);
             url = await snapshot.ref.getDownloadURL();
         }
         
@@ -85,14 +95,14 @@
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
         location.reload();
-    }
+    };
 
     db.collection("posts").orderBy("timestamp", "desc").onSnapshot(s => {
         const feed = document.getElementById('premiumFeed');
         feed.innerHTML = '';
         s.forEach(doc => {
             const p = doc.data();
-            feed.innerHTML += `<div class="post"><b>${p.author}</b><br>${p.text}${p.mediaUrl ? `<br><img src="${p.mediaUrl}" style="width:100%; margin-top:10px;">` : ''}</div>`;
+            feed.innerHTML += `<div class="premium-post"><strong>${p.author}</strong><br>${p.text}${p.mediaUrl ? `<br><img src="${p.mediaUrl}" style="width:100%; margin-top:10px; border-radius:10px;">` : ''}</div>`;
         });
     });
 </script>
